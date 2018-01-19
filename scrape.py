@@ -1,4 +1,8 @@
 """Module to scrape job postings."""
+import csv
+
+import os
+
 from bs4 import BeautifulSoup
 
 import requests
@@ -26,13 +30,29 @@ def indeed_search(query, location):
 
 def indeed_output(info):
     """Print jobs fetched from indeed to terminal."""
+    columns = ['title', 'link', 'company', 'location']
+    path = os.getcwd()
+    csv_file = path + '/csv/indeed.csv'
     for dic in info:
         print('----------------------------')
         for key in dic:
             print('{}: {}'.format(key, dic[key]))
+    dict_to_csv(csv_file, columns, info)
+
+
+def dict_to_csv(csv_file, columns, info):
+    """Write info dictionary results to csv file."""
+    try:
+        with open(csv_file, 'w') as f:
+            writer = csv.DictWriter(f, fieldnames=columns)
+            writer.writeheader()
+            for data in info:
+                writer.writerow(data)
+    except IOError:
+        print('I/O error')
+    return
 
 
 if __name__ == '__main__':
     import sys
-    indeed_search(sys.argv[1], sys.argv[2])
     indeed_output(indeed_search(sys.argv[1], sys.argv[2]))
