@@ -7,6 +7,8 @@ from bs4 import BeautifulSoup
 
 import requests
 
+import yagmail
+
 
 def indeed_search(query, location):
     """Find jobs that match query passed."""
@@ -53,6 +55,19 @@ def dict_to_csv(csv_file, columns, info):
     return
 
 
+def send_email():
+    """Send csv to recipient."""
+    try:
+        yag = yagmail.SMTP(os.environ.get('gmail_user'), os.environ.get('gmail_pass'))
+        path = os.getcwd()
+        csv_attachment = path + '/csv/indeed.csv'
+        contents = ['The csv is attached. Open in Google Sheets.']
+        yag.send('keeley.favoino@gmail.com', 'It"s a start! Indeed: Accounting Manager', contents, csv_attachment)
+    except Exception:
+        print('An error occured attempting to send the email.')
+
+
 if __name__ == '__main__':
     import sys
     indeed_output(indeed_search(sys.argv[1], sys.argv[2]))
+    send_email()
