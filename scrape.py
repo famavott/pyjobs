@@ -62,7 +62,7 @@ def send_email():
         path = os.getcwd()
         csv_attachment = path + '/csv/indeed.csv'
         contents = ['The csv is attached. Open in Google Sheets.']
-        yag.send('keeley.favoino@gmail.com', 'It"s a start! Indeed: Accounting Manager', contents, csv_attachment)
+        yag.send('keeley.favoino@gmail.com', "Indeed: Accounting Manager", contents, csv_attachment)
     except Exception:
         print('An error occured attempting to send the email.')
 
