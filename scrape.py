@@ -15,6 +15,9 @@ import yagmail
 def indeed_search(query, cities):
     """Find jobs that match query passed."""
     info = []
+    pref_titles = ['Assistant Controller', 'Controller', 'Accounting Manager',]
+    # exclude = ('+-executive+-account+manager+-bookkeeper+-intern+-analyst+-accounts'
+    #            '+-general+manager+-restaurant+-attendant+-sales+-hotel+-office+manager')
     for city in cities:
         indeed_url = (
             'https://www.indeed.com/jobs?as_and={0}'
@@ -37,25 +40,22 @@ def indeed_search(query, cities):
         [city_info[i].update({'company': companies[i]}) for i, x in enumerate(city_info)]
         [city_info[i].update({'location': locations[i]}) for i, x in enumerate(city_info)]
         info.append(city_info)
-    final_list = info[0] + info[1]
+
+    combined_list = [item for sublist in info for item in sublist]
+    final_list = [x for x in combined_list if x['title'] in pref_titles]
     return final_list
 
 
 def indeed_output(final_list):
     """Print jobs fetched from indeed to terminal."""
-    jobs_for_email = []
     columns = ['title', 'link', 'company', 'location']
     path = os.getcwd()
     date = f'{datetime.date.today():%m_%d}'
     csv_file = path + f'/csv/{date}_indeed.csv'
-    for dic in final_list:
-        for key in dic:
-            jobs_for_email.append('{}: {}'.format(key, dic[key]))
-    jobs_string = '\n\n'.join(jobs_for_email)
 
     # calls to write dictionary to csv and then send email
     dict_to_csv(csv_file, columns, final_list)
-    send_email(jobs_string)
+    send_email()
 
 
 def dict_to_csv(csv_file, columns, final_list):
@@ -71,7 +71,7 @@ def dict_to_csv(csv_file, columns, final_list):
     return
 
 
-def send_email(jobs_string):
+def send_email():
     """Send csv to recipient."""
     try:
         yag = yagmail.SMTP(os.environ.get('gmail_user'), os.environ.get('gmail_pass'))
@@ -88,4 +88,4 @@ def send_email(jobs_string):
 
 
 if __name__ == '__main__':
-    indeed_output(indeed_search('software engineer', ['chicago', 'denver']))
+    indeed_output(indeed_search('accounting', ['boise', 'chicago', 'denver']))
