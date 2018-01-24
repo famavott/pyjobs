@@ -7,65 +7,67 @@ import os
 
 from bs4 import BeautifulSoup
 
+import re
+
 import requests
 
 import yagmail
 
 
-def indeed_search(query, city):
+def indeed_search(query, cities, pref_titles):
     """Find jobs that match query passed."""
-    indeed_url = (
-        'https://www.indeed.com/jobs?as_and={0}'
-        '&as_phr=&as_any=&as_not=&as_ttl=&as_cm'
-        'p=&jt=fulltime&st=&sr=directhire&salar'
-        'y=&radius=25&l={1}&fromage=1&limit=50&'
-        'sort=date&psf=advsrch').format(query, city).replace(' ', '+')
-    post_url = 'http://www.indeed.com'
-    r = requests.get(indeed_url)
-    soup = BeautifulSoup(r.text, 'lxml')
-    organic = soup.find_all('div', {'data-tn-component': 'organicJob'})
+    info = []
+    for city in cities:
+        indeed_url = (
+            'https://www.indeed.com/jobs?as_and={0}'
+            '&as_phr=&as_any=&as_not=&as_ttl=&as_cm'
+            'p=&jt=fulltime&st=&sr=directhire&salar'
+            'y=&radius=25&l={1}&fromage=1&limit=50&'
+            'sort=date&psf=advsrch').format(query, city).replace(' ', '+')
+        post_url = 'http://www.indeed.com'
+        r = requests.get(indeed_url)
+        soup = BeautifulSoup(r.text, 'lxml')
+        organic = soup.find_all('div', {'data-tn-component': 'organicJob'})
 
-    companies = [x.span.text.strip() for x in organic]
-    loc = soup.find_all('span', {'class': 'location'})
-    locations = [x.text for x in loc]
-    all_attrs = [x.h2.a.attrs for x in organic]
-    info = [{'title': x['title'], 'link': post_url + x['href']} for x in all_attrs]
+        companies = [x.span.text.strip() for x in organic]
+        loc = soup.find_all('span', {'class': 'location'})
+        locations = [x.text for x in loc]
+        all_attrs = [x.h2.a.attrs for x in organic]
+        city_info = [{'title': x['title'], 'link': post_url + x['href']} for x in all_attrs]
 
-    # add company and location to info dictionary
-    [info[i].update({'company': companies[i]}) for i, x in enumerate(info)]
-    [info[i].update({'location': locations[i]}) for i, x in enumerate(info)]
-    return info
+        # add company and location to city_info dictionary
+        [city_info[i].update({'company': companies[i]}) for i, x in enumerate(city_info)]
+        [city_info[i].update({'location': locations[i]}) for i, x in enumerate(city_info)]
+        info.append(city_info)
 
-
-def indeed_output(info):
-    """Print jobs fetched from indeed to terminal."""
-    jobs_for_email = []
-    columns = ['title', 'link', 'company', 'location']
-    path = os.getcwd()
-    date = f'{datetime.date.today():%m_%d}'
-    csv_file = path + f'/csv/{date}_indeed.csv'
-    for dic in info:
-        for key in dic:
-            jobs_for_email.append('{}: {}'.format(key, dic[key]))
-    jobs_string = '\n\n'.join(jobs_for_email)
-    dict_to_csv(csv_file, columns, info)
-    send_email(jobs_string)
+    combined_list = [item for sublist in info for item in sublist]
+    return filter_by_title(combined_list, pref_titles)
 
 
-def dict_to_csv(csv_file, columns, info):
-    """Write info dictionary results to csv file."""
+def filter_by_title(combined_list, pref_titles):
+    """Include substrings of preferred titles to filter list."""
+    final_list = []
+    for dic in combined_list:
+        for title in pref_titles:
+            if title in dic['title'].lower():
+                final_list.append(dic)
+    return final_list
+
+
+def dict_to_csv(csv_file, columns, final_list):
+    """Write final_list dictionary results to csv file."""
     try:
         with open(csv_file, 'a') as f:
             writer = csv.DictWriter(f, fieldnames=columns)
             writer.writeheader()
-            for data in info:
+            for data in final_list:
                 writer.writerow(data)
     except IOError:
         print('I/O error')
     return
 
 
-def send_email(jobs_string):
+def send_email():
     """Send csv to recipient."""
     try:
         yag = yagmail.SMTP(os.environ.get('gmail_user'), os.environ.get('gmail_pass'))
@@ -81,6 +83,20 @@ def send_email(jobs_string):
         print('An error occured attempting to send the email.')
 
 
+def output(final_list):
+    """Call dict_to_csv and complete by sending email."""
+    columns = ['title', 'link', 'company', 'location']
+    path = os.getcwd()
+    date = f'{datetime.date.today():%m_%d}'
+    csv_file = path + f'/csv/{date}_indeed.csv'
+
+    # calls to write dictionary to csv and then send email
+    dict_to_csv(csv_file, columns, final_list)
+    send_email()
+
+
 if __name__ == '__main__':
-    indeed_output(indeed_search('accounting manager', 'chicago'))
-    indeed_output(indeed_search('accounting manager', 'denver'))
+    results = (indeed_search('accounting',
+                            ['boise', 'chicago', 'denver'],
+                            ['accounting manager', 'controller']))
+    output(results)
