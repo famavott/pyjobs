@@ -7,17 +7,16 @@ import os
 
 from bs4 import BeautifulSoup
 
+import re
+
 import requests
 
 import yagmail
 
 
-def indeed_search(query, cities):
+def indeed_search(query, cities, pref_titles):
     """Find jobs that match query passed."""
     info = []
-    pref_titles = ['Assistant Controller', 'Controller', 'Accounting Manager',]
-    # exclude = ('+-executive+-account+manager+-bookkeeper+-intern+-analyst+-accounts'
-    #            '+-general+manager+-restaurant+-attendant+-sales+-hotel+-office+manager')
     for city in cities:
         indeed_url = (
             'https://www.indeed.com/jobs?as_and={0}'
@@ -42,20 +41,17 @@ def indeed_search(query, cities):
         info.append(city_info)
 
     combined_list = [item for sublist in info for item in sublist]
-    final_list = [x for x in combined_list if x['title'] in pref_titles]
+    return filter_by_title(combined_list, pref_titles)
+
+
+def filter_by_title(combined_list, pref_titles):
+    """Include substrings of preferred titles to filter list."""
+    final_list = []
+    for dic in combined_list:
+        for title in pref_titles:
+            if title in dic['title'].lower():
+                final_list.append(dic)
     return final_list
-
-
-def indeed_output(final_list):
-    """Print jobs fetched from indeed to terminal."""
-    columns = ['title', 'link', 'company', 'location']
-    path = os.getcwd()
-    date = f'{datetime.date.today():%m_%d}'
-    csv_file = path + f'/csv/{date}_indeed.csv'
-
-    # calls to write dictionary to csv and then send email
-    dict_to_csv(csv_file, columns, final_list)
-    send_email()
 
 
 def dict_to_csv(csv_file, columns, final_list):
@@ -87,5 +83,20 @@ def send_email():
         print('An error occured attempting to send the email.')
 
 
+def output(final_list):
+    """Call dict_to_csv and complete by sending email."""
+    columns = ['title', 'link', 'company', 'location']
+    path = os.getcwd()
+    date = f'{datetime.date.today():%m_%d}'
+    csv_file = path + f'/csv/{date}_indeed.csv'
+
+    # calls to write dictionary to csv and then send email
+    dict_to_csv(csv_file, columns, final_list)
+    send_email()
+
+
 if __name__ == '__main__':
-    indeed_output(indeed_search('accounting', ['boise', 'chicago', 'denver']))
+    results = (indeed_search('accounting',
+                            ['boise', 'chicago', 'denver'],
+                            ['accounting manager', 'controller']))
+    output(results)
