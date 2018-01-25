@@ -66,7 +66,7 @@ def teamwork_search(pref_titles):
 
     [final_dict[i].update({'company': companies[i]}) for i, x in enumerate(final_dict)]
     [final_dict[i].update({'title': titles[i]}) for i, x in enumerate(final_dict)]
-    return final_dict
+    return filter_by_title(final_dict, pref_titles)
 
 
 def filter_by_title(combined_list, pref_titles):
@@ -118,10 +118,10 @@ def output(final_list):
 
 
 if __name__ == '__main__':
-    pref_titles = ['accounting manager', 'controller', 'financial reporting']
+    pref_titles = ['controller', 'accounting manager', 'financial reporting']
     cities = ['boise', 'chicago', 'denver']
 
-    indeed_results = (indeed_search('accounting', cities, pref_titles))
+    indeed_results = indeed_search('accounting', cities, pref_titles)
     teamwork_results = teamwork_search(pref_titles)
 
     output(indeed_results)
