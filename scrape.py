@@ -7,8 +7,6 @@ import os
 
 from bs4 import BeautifulSoup
 
-import re
-
 import requests
 
 import yagmail
@@ -57,7 +55,7 @@ def filter_by_title(combined_list, pref_titles):
 def dict_to_csv(csv_file, columns, final_list):
     """Write final_list dictionary results to csv file."""
     try:
-        with open(csv_file, 'a') as f:
+        with open(csv_file, 'a', encoding='utf-8') as f:
             writer = csv.DictWriter(f, fieldnames=columns)
             writer.writeheader()
             for data in final_list:
@@ -71,14 +69,13 @@ def send_email():
     """Send csv to recipient."""
     try:
         yag = yagmail.SMTP(os.environ.get('gmail_user'), os.environ.get('gmail_pass'))
-        path = os.getcwd()
         date = f'{datetime.date.today():%m_%d}'
-        csv_attachment = path + f'/csv/{date}_indeed.csv'
+        csv_attachment = f'/Users/mfavoino/coding_practice/pyjobs/csv/{date}_indeed.csv'
         contents = ['<h3>Open CSV in Google Sheets</h3>']
-        yag.send('mattfavoino@gmail.com',
+        yag.send('keeley.favoino@gmail.com',
                  f'Indeed Jobs for {date}',
                  contents,
-                 attachments=csv_attachment)
+                 attachments=f'/Users/mfavoino/coding_practice/pyjobs/csv/{date}_indeed.csv')
     except Exception:
         print('An error occured attempting to send the email.')
 
@@ -86,9 +83,8 @@ def send_email():
 def output(final_list):
     """Call dict_to_csv and complete by sending email."""
     columns = ['title', 'link', 'company', 'location']
-    path = os.getcwd()
     date = f'{datetime.date.today():%m_%d}'
-    csv_file = path + f'/csv/{date}_indeed.csv'
+    csv_file = f'/Users/mfavoino/coding_practice/pyjobs/csv/{date}_indeed.csv'
 
     # calls to write dictionary to csv and then send email
     dict_to_csv(csv_file, columns, final_list)
