@@ -14,14 +14,13 @@ import yagmail
 
 def indeed_search(query, cities, pref_titles):
     """Find jobs that match query passed on indeed."""
-    info = []
+    holder = []
     for city in cities:
-        indeed_url = (
-            'https://www.indeed.com/jobs?as_and={0}'
-            '&as_phr=&as_any=&as_not=&as_ttl=&as_cm'
-            'p=&jt=fulltime&st=&sr=directhire&salar'
-            'y=&radius=25&l={1}&fromage=1&limit=50&'
-            'sort=date&psf=advsrch').format(query, city).replace(' ', '+')
+        indeed_url = (r'https://www.indeed.com/jobs?as_and={0}'
+                      '&as_phr=&as_any=&as_not=&as_ttl=&as_cm'
+                      'p=&jt=fulltime&st=&sr=directhire&salar'
+                      'y=&radius=25&l={1}&fromage=1&limit=50&'
+                      'sort=date&psf=advsrch').format(query, city).replace(' ', '+')
         post_url = 'http://www.indeed.com'
         r = requests.get(indeed_url)
         soup = BeautifulSoup(r.text, 'lxml')
@@ -36,9 +35,46 @@ def indeed_search(query, cities, pref_titles):
         # add company and location to city_info dictionary
         [city_info[i].update({'company': companies[i]}) for i, x in enumerate(city_info)]
         [city_info[i].update({'location': locations[i]}) for i, x in enumerate(city_info)]
-        info.append(city_info)
+        holder.append(city_info)
 
-    combined_list = [item for sublist in info for item in sublist]
+    combined_list = [item for sublist in holder for item in sublist]
+    return filter_by_title(combined_list, pref_titles)
+
+
+def builtin_search(pref_titles):
+    """Find jobs from built in Colorado/Chicago website."""
+    cities = ['denver', 'chicago']
+    holder = []
+    for city in cities:
+        if city == 'denver':
+            builtin_url = (r'https://www.builtincolorado.com/jobs?f[0]=job-category_finance')
+            post_url = 'https://www.builtincolorado.com'
+        elif city == 'chicago':
+            builtin_url = (r'https://www.builtinchicago.org/jobs?f[0]=job-category_finance')
+            post_url = 'https://www.builtinchicago.org'
+        r = requests.get(builtin_url)
+        soup = BeautifulSoup(r.text, 'lxml')
+
+        comp_container = soup.find_all('div', class_='company-title')
+        title_container = soup.find_all('h2', class_='title')
+        loc_container = soup.find_all('div', class_='job-location')
+        date_container = soup.find_all('div', class_='job-date')
+
+        companies = [x.text for x in comp_container][3:]
+        titles = [x.text for x in title_container][3:]
+        locations = [x.text for x in loc_container][3:]
+        dates = [x.text for x in date_container]
+
+        link_wrapper = soup.find_all('div', class_='wrap-view-page')
+        temp_dict = [{'link': post_url + x.a['href']} for x in link_wrapper][3:]
+
+        [temp_dict[i].update({'company': companies[i]}) for i, x in enumerate(temp_dict)]
+        [temp_dict[i].update({'title': titles[i]}) for i, x in enumerate(temp_dict)]
+        [temp_dict[i].update({'location': locations[i]}) for i, x in enumerate(temp_dict)]
+        [temp_dict[i].update({'date': dates[i]}) for i, x in enumerate(temp_dict)]
+        city_dict = [x for x in temp_dict if 'hours' in x['date']]
+        holder.append(city_dict)
+    combined_list = [item for sublist in holder for item in sublist]
     return filter_by_title(combined_list, pref_titles)
 
 
@@ -113,7 +149,7 @@ def output(final_list):
     date = f'{datetime.date.today():%m_%d}'
     csv_file = f'/Users/mfavoino/coding_practice/pyjobs/csv/{date}_indeed.csv'
 
-    # calls to write dictionary to csv and then send email
+    # calls to write dictionary to csv
     dict_to_csv(csv_file, columns, final_list)
 
 
@@ -123,7 +159,9 @@ if __name__ == '__main__':
 
     indeed_results = indeed_search('accounting', cities, pref_titles)
     teamwork_results = teamwork_search(pref_titles)
+    builtin_results = builtin_search(pref_titles)
 
     output(indeed_results)
     output(teamwork_results)
+    output(builtin_results)
     send_email()
