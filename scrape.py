@@ -135,7 +135,7 @@ def send_email():
         date = f'{datetime.date.today():%m_%d}'
         csv_attachment = f'/Users/mfavoino/coding_practice/pyjobs/csv/{date}_indeed.csv'
         contents = ['<h3>Open CSV in Google Sheets</h3>']
-        yag.send('mattfavoino@gmail.com',
+        yag.send('keeley.favoino@gmail.com',
                  f'Job Results for {date}',
                  contents,
                  attachments=f'/Users/mfavoino/coding_practice/pyjobs/csv/{date}_indeed.csv')
@@ -145,7 +145,7 @@ def send_email():
 
 def output(final_list):
     """Call dict_to_csv and complete by sending email."""
-    columns = ['title', 'link', 'company', 'location']
+    columns = ['title', 'link', 'company', 'location', 'date']
     date = f'{datetime.date.today():%m_%d}'
     csv_file = f'/Users/mfavoino/coding_practice/pyjobs/csv/{date}_indeed.csv'
 
