@@ -55,18 +55,14 @@ def builtin_search(pref_titles):
         r = requests.get(builtin_url)
         soup = BeautifulSoup(r.text, 'lxml')
 
-        comp_container = soup.find_all('div', class_='company-title')
-        title_container = soup.find_all('h2', class_='title')
-        loc_container = soup.find_all('div', class_='job-location')
-        date_container = soup.find_all('div', class_='job-date')
+        original = soup.find_all('div', class_='original')
+        temp_dict = [{'link': post_url + x.a['href']} for x in original][3:]
+        titles = [x.h2.text for x in original][3:]
 
-        companies = [x.text for x in comp_container][3:]
-        titles = [x.text for x in title_container][3:]
-        locations = [x.text for x in loc_container][3:]
-        dates = [x.text for x in date_container]
-
-        link_wrapper = soup.find_all('div', class_='wrap-view-page')
-        temp_dict = [{'link': post_url + x.a['href']} for x in link_wrapper][3:]
+        for div in soup.find_all('div', class_='original'):
+            companies = [x.text for x in soup.find_all(class_='company-title')][3:]
+            locations = [x.text for x in soup.find_all(class_='job-location')][3:]
+            dates = [x.text for x in soup.find_all(class_='job-date')]
 
         [temp_dict[i].update({'company': companies[i]}) for i, x in enumerate(temp_dict)]
         [temp_dict[i].update({'title': titles[i]}) for i, x in enumerate(temp_dict)]
@@ -154,8 +150,9 @@ def output(final_list):
 
 
 if __name__ == '__main__':
+    # pref_titles = ['python', 'software developer', 'software engineer' 'full-stack']
     pref_titles = ['controller', 'accounting manager', 'financial reporting']
-    cities = ['boise', 'chicago', 'denver']
+    cities = ['boise', 'chicago', 'denver', 'portland']
 
     indeed_results = indeed_search('accounting', cities, pref_titles)
     teamwork_results = teamwork_search(pref_titles)
