@@ -42,8 +42,8 @@ def indeed_search(query, cities, pref_titles):
 
 
 def builtin_search(pref_titles):
-    """Find jobs from built in Colorado/Chicago website."""
-    cities = ['denver', 'chicago']
+    """Find jobs from built in Colorado, Chicago, Austin websites."""
+    cities = ['denver', 'chicago', 'austin']
     holder = []
     for city in cities:
         if city == 'denver':
@@ -52,6 +52,9 @@ def builtin_search(pref_titles):
         elif city == 'chicago':
             builtin_url = (r'https://www.builtinchicago.org/jobs?f[0]=job-category_finance')
             post_url = 'https://www.builtinchicago.org'
+        elif city == 'austin':
+            builtin_url = (r'https://www.builtinaustin.com/jobs?f[0]=job-category_finance')
+            post_url = 'https://www.buitinaustin.com'
         r = requests.get(builtin_url)
         soup = BeautifulSoup(r.text, 'lxml')
 
@@ -152,7 +155,7 @@ def output(final_list):
 if __name__ == '__main__':
     # pref_titles = ['python', 'software developer', 'software engineer' 'full-stack']
     pref_titles = ['controller', 'accounting manager', 'financial reporting']
-    cities = ['boise', 'chicago', 'denver', 'portland']
+    cities = ['boise', 'chicago', 'denver', 'portland', 'austin', 'minneapolis']
 
     indeed_results = indeed_search('accounting', cities, pref_titles)
     teamwork_results = teamwork_search(pref_titles)
