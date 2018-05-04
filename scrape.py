@@ -42,19 +42,13 @@ def indeed_search(query, cities, pref_titles):
 
 
 def builtin_search(pref_titles):
-    """Find jobs from built in Colorado, Chicago, Austin websites."""
-    cities = ['denver', 'chicago', 'austin']
+    """Find jobs from builtin Chicago."""
+    cities = ['chicago']
     holder = []
     for city in cities:
-        if city == 'denver':
-            builtin_url = (r'https://www.builtincolorado.com/jobs?f[0]=job-category_finance')
-            post_url = 'https://www.builtincolorado.com'
-        elif city == 'chicago':
-            builtin_url = (r'https://www.builtinchicago.org/jobs?f[0]=job-category_finance')
+        if city == 'chicago':
+            builtin_url = (r'https://www.builtinchicago.org/jobs?f[0]=job-category_106')
             post_url = 'https://www.builtinchicago.org'
-        elif city == 'austin':
-            builtin_url = (r'https://www.builtinaustin.com/jobs?f[0]=job-category_finance')
-            post_url = 'https://www.buitinaustin.com'
         r = requests.get(builtin_url)
         soup = BeautifulSoup(r.text, 'lxml')
 
@@ -75,34 +69,6 @@ def builtin_search(pref_titles):
         holder.append(city_dict)
     combined_list = [item for sublist in holder for item in sublist]
     return filter_by_title(combined_list, pref_titles)
-
-
-def teamwork_search(pref_titles):
-    """Find jobs that match query passed on teamwork online."""
-    teamwork_url = (r'https://www.teamworkonline.com/jobs-in-sports'
-                    '?utf8=%E2%9C%93&employment_opportunity_search%5Bquery%'
-                    '5D=&employment_opportunity_search%5Blocation%5D%5Bname'
-                    '%5D=&employment_opportunity_search%5Blocation%5D%5Badm'
-                    'inistrative_division%5D=&employment_opportunity_search'
-                    '%5Blocation%5D%5Blatitude%5D=&employment_opportunity_s'
-                    'earch%5Blocation%5D%5Blongitude%5D=&employment_opportu'
-                    'nity_search%5Bexclude_united_states_opportunities%5D=0'
-                    '&employment_opportunity_search%5Bcategory_id%5D=332&co'
-                    'mmit=Search&employment_opportunity_search%5Bcareer_level_id%5D=')
-    post_url = 'https://www.teamworkonline.com'
-    r = requests.get(teamwork_url)
-    soup = BeautifulSoup(r.text, 'lxml')
-    jobs = soup.find_all('li', class_='result-item')
-
-    links = [x.a.attrs for x in jobs]
-    final_dict = [{'link': post_url + x['href']} for x in links]
-    companies = [x.find('div', class_='result-name').text for x in jobs]
-    titles = [x.find('div', class_='result-position').text for x in jobs]
-
-    [final_dict[i].update({'company': companies[i]}) for i, x in enumerate(final_dict)]
-    [final_dict[i].update({'title': titles[i]}) for i, x in enumerate(final_dict)]
-    return filter_by_title(final_dict, pref_titles)
-
 
 def filter_by_title(combined_list, pref_titles):
     """Include substrings of preferred titles to filter list."""
@@ -128,13 +94,13 @@ def dict_to_csv(csv_file, columns, final_list):
 
 
 def send_email():
-    """Send csv to recipient."""
+    """Send csv to recipient with yagmail."""
     try:
         yag = yagmail.SMTP(os.environ.get('gmail_user'), os.environ.get('gmail_pass'))
         date = f'{datetime.date.today():%m_%d}'
         csv_attachment = f'/Users/mfavoino/coding_practice/pyjobs/csv/{date}_indeed.csv'
         contents = ['<h3>Open CSV in Google Sheets</h3>']
-        yag.send('keeley.favoino@gmail.com',
+        yag.send('mattfavoino@gmail.com',
                  f'Job Results for {date}',
                  contents,
                  attachments=f'/Users/mfavoino/coding_practice/pyjobs/csv/{date}_indeed.csv')
@@ -153,15 +119,18 @@ def output(final_list):
 
 
 if __name__ == '__main__':
-    # pref_titles = ['python', 'software developer', 'software engineer' 'full-stack']
-    pref_titles = ['controller', 'accounting manager', 'financial reporting']
-    cities = ['boise', 'chicago', 'denver', 'portland', 'austin', 'minneapolis']
+    pref_titles = ['python developer',
+                   'software developer',
+                   'software engineer',
+                   'full-stack',
+                   'python engineer',
+                   'junior developer',
+                   'junior software']
+    cities = ['chicago']
 
-    indeed_results = indeed_search('accounting', cities, pref_titles)
-    teamwork_results = teamwork_search(pref_titles)
+    indeed_results = indeed_search('python', cities, pref_titles)
     builtin_results = builtin_search(pref_titles)
 
     output(indeed_results)
-    output(teamwork_results)
     output(builtin_results)
     send_email()
