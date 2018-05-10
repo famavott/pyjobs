@@ -147,7 +147,9 @@ if __name__ == '__main__':
 
     indeed_results = indeed_search('python', cities, pref_titles)
     builtin_results = builtin_search(pref_titles)
+    craigslist_results = craigslist_search(pref_titles)
 
     output(indeed_results)
     output(builtin_results)
+    output(craigslist_results)
     send_email()
