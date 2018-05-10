@@ -70,6 +70,23 @@ def builtin_search(pref_titles):
     combined_list = [item for sublist in holder for item in sublist]
     return filter_by_title(combined_list, pref_titles)
 
+
+def craigslist_search(pref_titles):
+    """Find jobs from craigslist posted on day of search."""
+    cl_url = r'https://chicago.craigslist.org/search/jjj?query=python&sort=date&postedToday=1'
+    r = requests.get(cl_url)
+    soup = BeautifulSoup(r.text, 'lxml')
+    results = soup.find_all('li', class_='result-row')
+    combined_list = []
+    for job in results:
+        target = job.find('a', class_='result-title hdrlnk')
+        ind_dict = {}
+        ind_dict['link'] = target['href']
+        ind_dict['title'] = target.text
+        combined_list.append(ind_dict)
+    return filter_by_title(combined_list, pref_titles)
+
+
 def filter_by_title(combined_list, pref_titles):
     """Include substrings of preferred titles to filter list."""
     final_list = []
