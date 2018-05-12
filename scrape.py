@@ -153,14 +153,12 @@ def output(final_list):
 
 
 if __name__ == '__main__':
-    pref_titles = ['python developer',
-                   'software developer',
-                   'software engineer',
+    pref_titles = ['python',
+                   'junior',
+                   'developer',
+                   'engineer',
                    'full-stack',
-                   'python engineer',
-                   'junior developer',
-                   'junior software',
-                   'backend devleoper',
+                   'backend',
                    'full stack']
     cities = ['chicago']
 
