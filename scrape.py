@@ -87,6 +87,23 @@ def craigslist_search(pref_titles):
     return filter_by_title(combined_list, pref_titles)
 
 
+def matter_search(pref_titles):
+    """Find jobs from mattter job board posted on day of search."""
+    base_url = 'https://matter.health'
+    matter_url = r'https://matter.health/job-board/#jobs'
+    r = requests.get(matter_url)
+    soup = BeautifulSoup(r.text, 'lxml')
+    results = soup.find_all('div', class_='jobline')
+    combined_list = []
+    for job in results:
+        ind_dict = {}
+        ind_dict['link'] = base_url + job.a['href']
+        ind_dict['title'] = job.find('p', class_='cappedLink').text
+        ind_dict['company'] = job.find('div', class_='job__company').p.text
+        combined_list.append(ind_dict)
+    return filter_by_title(combined_list, pref_titles)
+
+
 def filter_by_title(combined_list, pref_titles):
     """Include substrings of preferred titles to filter list."""
     final_list = []
@@ -115,12 +132,12 @@ def send_email():
     try:
         yag = yagmail.SMTP(os.environ.get('gmail_user'), os.environ.get('gmail_pass'))
         date = f'{datetime.date.today():%m_%d}'
-        csv_attachment = f'/Users/mfavoino/coding_practice/pyjobs/csv/{date}_indeed.csv'
+        csv_attachment = f'/Users/mfavoino/coding_practice/pyjobs/csv/{date}_roles.csv'
         contents = ['<h3>Open CSV in Google Sheets</h3>']
         yag.send('mattfavoino@gmail.com',
                  f'Job Results for {date}',
                  contents,
-                 attachments=f'/Users/mfavoino/coding_practice/pyjobs/csv/{date}_indeed.csv')
+                 attachments=f'/Users/mfavoino/coding_practice/pyjobs/csv/{date}_roles.csv')
     except Exception:
         print('An error occured attempting to send the email.')
 
@@ -129,7 +146,7 @@ def output(final_list):
     """Call dict_to_csv and complete by sending email."""
     columns = ['title', 'link', 'company', 'location', 'date']
     date = f'{datetime.date.today():%m_%d}'
-    csv_file = f'/Users/mfavoino/coding_practice/pyjobs/csv/{date}_indeed.csv'
+    csv_file = f'/Users/mfavoino/coding_practice/pyjobs/csv/{date}_roles.csv'
 
     # calls to write dictionary to csv
     dict_to_csv(csv_file, columns, final_list)
@@ -142,14 +159,18 @@ if __name__ == '__main__':
                    'full-stack',
                    'python engineer',
                    'junior developer',
-                   'junior software']
+                   'junior software',
+                   'backend devleoper',
+                   'full stack']
     cities = ['chicago']
 
     indeed_results = indeed_search('python', cities, pref_titles)
     builtin_results = builtin_search(pref_titles)
     craigslist_results = craigslist_search(pref_titles)
+    matter_results = matter_search(pref_titles)
 
     output(indeed_results)
     output(builtin_results)
     output(craigslist_results)
+    output(matter_results)
     send_email()
