@@ -1,10 +1,10 @@
-Job Scraper
-
 [![Build Status](https://travis-ci.org/famavott/pyjobs.svg?branch=master)](https://travis-ci.org/famavott/pyjobs)
+
+Job Scraper
 ---
 ### Description
 
-A simple scraper for job postings from Indeed, Craigslist, and Built In Chicago. Provided a search term to query, cities, and substrings to look for in the job title, it writes the results to a csv, and then emails it to a recipient using yagmail.
+A simple scraper for job postings from Indeed, Craigslist, Built In Chicago, 1871, and Matter. Provided a search term to query, cities, and substrings to look for in the job title, it writes the results to a csv, and then emails it to a recipient using yagmail.
 
 The script excludes sponsored postings, includes jobs within a 25 radius of the provided cities, and only grabs postings from the last day.
 
