@@ -153,14 +153,8 @@ def output(final_list):
 
 
 if __name__ == '__main__':
-    pref_titles = ['python',
-                   'junior',
-                   'developer',
-                   'engineer',
-                   'full-stack',
-                   'backend',
-                   'full stack']
-    cities = ['chicago']
+    pref_titles = {'developer', 'engineer'}
+    cities = {'chicago'}
 
     indeed_results = indeed_search('python', cities, pref_titles)
     builtin_results = builtin_search(pref_titles)

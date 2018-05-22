@@ -1,4 +1,6 @@
 Job Scraper
+
+[![Build Status](https://travis-ci.org/famavott/pyjobs.svg?branch=master)](https://travis-ci.org/famavott/pyjobs)
 ---
 ### Description
 
