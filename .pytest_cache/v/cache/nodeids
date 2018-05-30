@@ -1,3 +1,6 @@
 [
-  "test_scrape.py::test_indeed_search"
+  "test_scrape.py::test_indeed_search",
+  "test_scrape.py::test_builtin_search",
+  "test_scrape.py::test_craigslist_search",
+  "test_scrape.py::test_matter_search"
 ]
